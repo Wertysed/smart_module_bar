@@ -1,39 +1,36 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Depends
 from typing import Annotated, Any
-from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
+import shemas, models, crud
+from db import SessionLocal, engine
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-class UserBase(BaseModel):
-    email: EmailStr
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-class UserOut(UserBase):
-    first_name: str
-
-
-class UserReg(UserBase):
-    first_name: str
-    last_name: str
-    password: str
-
-
-class UserInDb(UserBase):
-    hash_password: str
-
-
-class UserIn(UserBase):
-    password: str
-
-
-@app.post("/login", response_model=UserOut)
-async def test(user: Annotated[UserIn, Body()] = None):
-    user_out = UserOut(**user.dict(), first_name="kaban")
+@app.post("/login", response_model=shemas.UserOut)
+async def login(user: Annotated[shemas.UserIn, Body()] = None):
+    user_out = shemas.UserOut(**user.dict(), first_name="kaban")
     return user_out
 
 
-@app.post("/registration", response_model=UserOut)
-async def test(user: Annotated[UserReg, Body()] = None):
+@app.post("/registration", response_model=shemas.UserOut)
+async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Session = Depends(get_db)):
+    # hh = shemas.UserInDb(**user.dict(), hashed_password=user.password+'Hello')
+    # print(hh)
+    db_user = models.User(**(shemas.UserInDb(**user.dict(), hashed_password=user.password+'Hello')).dict())
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     return user
 
