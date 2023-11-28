@@ -43,3 +43,14 @@ class Goals(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="goals")
+
+
+class SmartModule(Base):
+    __tablename__ = 'smart_module'
+
+    id = Column(Integer, primary_key=True, index=True)
+    identification = Column(String, index=True)
+    last_user_id = Column(Integer, ForeignKey("users.id"))
+    session_status = Column(Integer, index=True)
+
+    last_user = relationship("User", back_populates="smart_module")

@@ -3,9 +3,17 @@ from sqlalchemy.orm import Session
 import shemas
 from passlib.context import CryptContext
 from datetime import date
+import segno
+
+
+qrcode = segno.make_qr("Hello, World")
+qrcode.save("basic_qrcode.png")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
+def get_smartmodule(db: Session,identification_key:str):
+    return crud.get_smartmodule_by_identification_key(db, identification_key)
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)

@@ -4,6 +4,18 @@ from datetime import date
 import models, shemas
 
 
+def get_smartmodule_by_identification_key(db: Session, identification_key: str):
+    return db.query(models.SmartModule).filter(models.SmartModule.identification == identification_key).first()
+
+def change_smartmodule_user_status(db:Session, identification_key: str,user_id: int, status: int):
+    db_smartmodule = get_smartmodule_by_identification_key(db, identification_key)
+    db_smartmodule.last_user_id = user_id
+    db_smartmodule.session_status = status
+    db.add(db_smartmodule)
+    db.commit()
+    db.refresh(db_smartmodule)
+    return db_smartmodule
+
 
 def get_user_goals(db: Session, user_id: int):
     return db.query(models.Goals).filter(models.Goals.owner_id == user_id).all()

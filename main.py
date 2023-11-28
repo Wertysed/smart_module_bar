@@ -51,6 +51,11 @@ async def login(user: Annotated[shemas.UserIn, Body()] = None, db: Session = Dep
     user = services.login(user, db)
     return user
 
+@app.get("/identification_module")
+async def identification_module(identification_key: str, db: Session = Depends(get_db)):
+    return services.get_smartmodule(db, identification_key)
+
+
 
 @app.post("/registration", response_model=shemas.UserOut)
 async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Session = Depends(get_db)):

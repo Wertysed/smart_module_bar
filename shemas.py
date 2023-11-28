@@ -40,6 +40,11 @@ class GoalsCreate(BaseModel):
 class Goals(GoalsCreate):
     pass
 
+class SmartModule(BaseModel):
+    identification: str
+    last_user_id: int
+    session_status: int
+
 class Workout(BaseModel):
     data: date
     count_of_pull_up_great: int
