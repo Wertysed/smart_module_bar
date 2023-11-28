@@ -1,12 +1,15 @@
-from fastapi import FastAPI, Body, Depends
+from fastapi import FastAPI, Body, Depends, Query
 from typing import Annotated, Any
 from sqlalchemy.orm import Session
-import shemas, models, crud
+import shemas, models, crud, services
 from db import SessionLocal, engine
-
+from passlib.context import CryptContext
+from datetime import date
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 
@@ -18,19 +21,38 @@ def get_db():
         db.close()
 
 
+@app.post("/create_workout", response_model=shemas.Workout)
+async def create_workout(workout: Annotated[shemas.Workout, Body()] = None, db: Session = Depends(get_db)):
+    workout = services.create_user_workout(db, workout)
+    return workout
+
+
+@app.get("/workouts/{owner_id}", response_model=list[shemas.Workout])
+async def get_user_workouts(owner_id: int, db: Session = Depends(get_db), data_begin: Annotated[date, Query()] = None,
+                            data_end: Annotated[date, Query()] = None):
+    workouts = services.get_user_workout(db, owner_id, data_begin, data_end)
+    return workouts
+
+
+@app.post("/create_goals", response_model=shemas.Goals)
+async def create_goals(goals: Annotated[shemas.GoalsCreate, Body()] = None, db: Session = Depends(get_db)):
+    goals = services.create_user_goals(db, goals)
+    return goals
+
+
+@app.get("/goals/{owner_id}", response_model=list[shemas.Goals])
+async def get_user_goals(owner_id: int, db: Session = Depends(get_db)):
+    goals = services.get_user_goals(db, owner_id)
+    return goals
+
+
 @app.post("/login", response_model=shemas.UserOut)
-async def login(user: Annotated[shemas.UserIn, Body()] = None):
-    user_out = shemas.UserOut(**user.dict(), first_name="kaban")
-    return user_out
+async def login(user: Annotated[shemas.UserIn, Body()] = None, db: Session = Depends(get_db)):
+    user = services.login(user, db)
+    return user
 
 
 @app.post("/registration", response_model=shemas.UserOut)
 async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Session = Depends(get_db)):
-    # hh = shemas.UserInDb(**user.dict(), hashed_password=user.password+'Hello')
-    # print(hh)
-    db_user = models.User(**(shemas.UserInDb(**user.dict(), hashed_password=user.password+'Hello')).dict())
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    user = services.registration(user, db)
     return user
-

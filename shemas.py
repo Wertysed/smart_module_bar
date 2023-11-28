@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import date
 
 
 class UserBase(BaseModel):
@@ -18,7 +19,7 @@ class UserReg(UserBase):
     password: str
     password_again: str
 
-class UserInDb(UserBase):
+class UserCreate(UserBase):
     firstname: str
     lastname: str
     weight: int
@@ -28,3 +29,22 @@ class UserInDb(UserBase):
 
 class UserIn(UserBase):
     password: str
+
+
+class GoalsCreate(BaseModel):
+    goals_for_week: int
+    goals_for_month: int
+    goals_for_year: int
+    owner_id: int
+
+class Goals(GoalsCreate):
+    pass
+
+class Workout(BaseModel):
+    data: date
+    count_of_pull_up_great: int
+    count_of_pull_up_medium: int
+    count_of_pull_up_bad: int
+    calories: int
+    owner_id: int
+
