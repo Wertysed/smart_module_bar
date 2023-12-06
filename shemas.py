@@ -9,7 +9,7 @@ class UserBase(BaseModel):
 class UserOut(UserBase):
     firstname: str
     lastname: str
-
+    id: int
 class UserReg(UserBase):
     firstname: str
     lastname: str
@@ -42,8 +42,13 @@ class Goals(GoalsCreate):
 
 class SmartModule(BaseModel):
     identification: str
-    last_user_id: int
     session_status: int
+    last_user_id: int
+class PublicPullUps(BaseModel):
+    identification: str
+    count_of_pull_up_great: int
+    count_of_pull_up_medium: int
+    count_of_pull_up_bad: int
 
 class Workout(BaseModel):
     data: date

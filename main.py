@@ -5,6 +5,9 @@ import shemas, models, crud, services
 from db import SessionLocal, engine
 from passlib.context import CryptContext
 from datetime import date
+
+
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -61,3 +64,24 @@ async def identification_module(identification_key: str, db: Session = Depends(g
 async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Session = Depends(get_db)):
     user = services.registration(user, db)
     return user
+
+
+@app.post("/start_workout")
+async def start_workout(user_id: int, identification_key: str, db: Session = Depends(get_db)):
+    workout_new = shemas.Workout(data=date.today(), count_of_pull_up_great=0, count_of_pull_up_medium=0, count_of_pull_up_bad=0, calories=0, owner_id=user_id)
+    workout = services.create_user_workout(db, workout_new)
+    new_status = services.change_smartmodule_user_status(db, identification_key, user_id, status=1)
+    return {"message": "workout starts!"}
+
+@app.post("/end_workout")
+async def end_workout(user_id: int, identification_key: str, db: Session = Depends(get_db)):
+    new_status = services.change_smartmodule_user_status(db, identification_key, user_id, status=0)
+    return {"message": "workout ends!"}
+@app.post("/public_pull_ups")
+async def public_pull_ups(data: Annotated[shemas.PublicPullUps, Body()] = None, db: Session = Depends(get_db)):
+    status = services.public_pull_ups(db, data)
+    if status:
+        return {"message": "pull ups counted"}
+    else:
+        return {"message": "pull ups doesnt counted"
+                           ""}
