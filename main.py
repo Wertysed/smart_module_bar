@@ -66,6 +66,11 @@ async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Sessi
     return user
 
 
+@app.post("/create_smart_module", response_model=shemas.SmartModule)
+async def create_smart_module(smart_module: Annotated[shemas.SmartModule, Body()] = None, db: Session = Depends(get_db)):
+    new_smart_module = services.create_smart_module(db, smart_module)
+    return new_smart_module
+
 @app.post("/start_workout")
 async def start_workout(user_id: int, identification_key: str, db: Session = Depends(get_db)):
     workout_new = shemas.Workout(data=date.today(), count_of_pull_up_great=0, count_of_pull_up_medium=0, count_of_pull_up_bad=0, calories=0, owner_id=user_id)
