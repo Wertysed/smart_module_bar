@@ -12,13 +12,19 @@ qrcode.save("basic_qrcode.png")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-
+meters = {
+    "count_of_pull_up_great": 0.4,
+    "count_of_pull_up_medium": 0.3,
+    "count_of_pull_up_bad": 0.2
+}
 
 def public_pull_ups(db: Session, pull_ups_data: shemas.PublicPullUps):
     active_module_session = crud.get_smartmodule_by_identification_key(db, pull_ups_data.identification)
     if active_module_session.session_status == 1:
         crud.update_pull_ups_for_workout(db, active_module_session.last_user_id
                                          ,pull_ups_data)
+        calories = sum([(((crud.get_user(db, active_module_session.last_user_id).weight * meters[str(key)]) / 4.8 + ((crud.get_user(db, active_module_session.last_user_id).weight * meters[str(key)] / 4.8) * 0.4)) * 10)* value for key, value in pull_ups_data.dict().items() if type(value) == int])
+        crud.update_calories(db, active_module_session.last_user_id, calories)
         return True
     else:
         return False
