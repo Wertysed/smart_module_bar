@@ -2,12 +2,12 @@ import crud
 from sqlalchemy.orm import Session
 import shemas
 from passlib.context import CryptContext
-from datetime import date
+from datetime import date, datetime
 import segno
 
 
-qrcode = segno.make_qr("Hello, World")
-qrcode.save("basic_qrcode.png")
+qrcode = segno.make_qr("1234")
+qrcode.save("identification_key.png")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -17,6 +17,36 @@ meters = {
     "count_of_pull_up_medium": 0.3,
     "count_of_pull_up_bad": 0.2
 }
+
+
+def get_data_for_month(db: Session, owner_id: int, month: int):
+    result = dict()
+    for i in range(1, 31):
+        sum_of_pullups = 0
+        dlc = ""
+        if i < 10:
+            dlc = "0"
+        work_outs_for_day = get_user_workout(db, owner_id, datetime.strptime(f"2023-{month}-{dlc+str(i)}", '%Y-%m-%d').date(),
+                                     datetime.strptime(f"2023-{month}-{dlc+str(i)}", '%Y-%m-%d').date())
+        for j in work_outs_for_day:
+            sum_of_pullups += j.count_of_pull_up_great + j.count_of_pull_up_medium + j.count_of_pull_up_bad
+        result.update({str(i): sum_of_pullups})
+    return result
+
+def get_data_for_year(db: Session, owner_id: int, year: int):
+    result = dict()
+    for i in range(1, 13):
+        sum_of_pullups = 0
+        dlc = ""
+        if i < 10:
+            dlc = "0"
+        work_outs_for_day = get_user_workout(db, owner_id,
+                                             datetime.strptime(f"{str(year)}-{dlc+str(i)}-01", '%Y-%m-%d').date(),
+                                             datetime.strptime(f"{str(year)}-{dlc+str(i)}-28", '%Y-%m-%d').date())
+        for j in work_outs_for_day:
+            sum_of_pullups += j.count_of_pull_up_great + j.count_of_pull_up_medium + j.count_of_pull_up_bad
+        result.update({str(i): sum_of_pullups})
+    return result
 
 def public_pull_ups(db: Session, pull_ups_data: shemas.PublicPullUps):
     active_module_session = crud.get_smartmodule_by_identification_key(db, pull_ups_data.identification)

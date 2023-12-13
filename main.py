@@ -29,7 +29,14 @@ async def create_workout(workout: Annotated[shemas.Workout, Body()] = None, db: 
     workout = services.create_user_workout(db, workout)
     return workout
 
-
+@app.get("/data_for_month/{owner_id}")
+async def get_data_for_month(owner_id: int, db: Session = Depends(get_db), month: Annotated[int, Query()] = None):
+    data = services.get_data_for_month(db, owner_id, month)
+    return data
+@app.get("/data_for_year/{owner_id}")
+async def get_data_for_year(owner_id: int, db: Session = Depends(get_db), year: Annotated[int, Query()] = None):
+    data = services.get_data_for_year(db, owner_id, year)
+    return data
 @app.get("/workouts/{owner_id}", response_model=list[shemas.Workout])
 async def get_user_workouts(owner_id: int, db: Session = Depends(get_db), data_begin: Annotated[date, Query()] = None,
                             data_end: Annotated[date, Query()] = None):
