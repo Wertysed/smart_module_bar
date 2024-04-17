@@ -24,7 +24,7 @@ def get_db():
         db.close()
 
 
-@app.post("/create_workout", response_model=shemas.Workout)
+@app.post("/create_workout" )
 async def create_workout(workout: Annotated[shemas.Workout, Body()] = None, db: Session = Depends(get_db)):
     workout = services.create_user_workout(db, workout)
     return workout
@@ -37,23 +37,24 @@ async def get_data_for_month(owner_id: int, db: Session = Depends(get_db), month
 async def get_data_for_year(owner_id: int, db: Session = Depends(get_db), year: Annotated[int, Query()] = None):
     data = services.get_data_for_year(db, owner_id, year)
     return data
-@app.get("/workouts/{owner_id}", response_model=list[shemas.Workout])
+@app.get("/workouts/{owner_id}", response_model=list[shemas.WorkoutOut])
 async def get_user_workouts(owner_id: int, db: Session = Depends(get_db), data_begin: Annotated[date, Query()] = None,
                             data_end: Annotated[date, Query()] = None):
-    workouts = services.get_user_workout(db, owner_id, data_begin, data_end)
+    workouts = services.get_user_workout_bad_version(db, owner_id, data_begin, data_end)
     return workouts
 
 
-@app.post("/create_goals", response_model=shemas.Goals)
-async def create_goals(goals: Annotated[shemas.GoalsCreate, Body()] = None, db: Session = Depends(get_db)):
-    goals = services.create_user_goals(db, goals)
-    return goals
+
+# @app.post("/create_goals", response_model=shemas.Goals)
+# async def create_goals(goals: Annotated[shemas.GoalsCreate, Body()] = None, db: Session = Depends(get_db)):
+#     goals = services.create_user_goals(db, goals)
+#     return goals
 
 
-@app.get("/goals/{owner_id}", response_model=list[shemas.Goals])
-async def get_user_goals(owner_id: int, db: Session = Depends(get_db)):
-    goals = services.get_user_goals(db, owner_id)
-    return goals
+# @app.get("/goals/{owner_id}", response_model=list[shemas.Goals])
+# async def get_user_goals(owner_id: int, db: Session = Depends(get_db)):
+#     goals = services.get_user_goals(db, owner_id)
+#     return goals
 
 
 @app.post("/login", response_model=shemas.UserOut)
@@ -79,10 +80,9 @@ async def create_smart_module(smart_module: Annotated[shemas.SmartModule, Body()
     return new_smart_module
 
 @app.post("/start_workout")
-async def start_workout(user_id: int, identification_key: str, db: Session = Depends(get_db)):
-    workout_new = shemas.Workout(data=date.today(), count_of_pull_up_great=0, count_of_pull_up_medium=0, count_of_pull_up_bad=0, calories=0, owner_id=user_id)
-    workout = services.create_user_workout(db, workout_new)
-    new_status = services.change_smartmodule_user_status(db, identification_key, user_id, status=1)
+async def start_workout(workout: Annotated[shemas.Workout, Body()] = None,  db: Session = Depends(get_db)):
+    services.create_user_workout(db, workout)
+    services.change_smartmodule_user_status(db, workout.identification_key, workout.user_id,  status=1)
     return {"message": "workout starts!"}
 
 @app.post("/end_workout")

@@ -51,10 +51,8 @@ def get_data_for_year(db: Session, owner_id: int, year: int):
 def public_pull_ups(db: Session, pull_ups_data: shemas.PublicPullUps):
     active_module_session = crud.get_smartmodule_by_identification_key(db, pull_ups_data.identification)
     if active_module_session.session_status == 1:
-        crud.update_pull_ups_for_workout(db, active_module_session.last_user_id
+        crud.update_pull_ups_for_workout(db, active_module_session.user_id
                                          ,pull_ups_data)
-        calories = sum([(((crud.get_user(db, active_module_session.last_user_id).weight * meters[str(key)]) / 4.8 + ((crud.get_user(db, active_module_session.last_user_id).weight * meters[str(key)] / 4.8) * 0.4)) * 10)* value for key, value in pull_ups_data.dict().items() if type(value) == int])
-        crud.update_calories(db, active_module_session.last_user_id, calories)
         return True
     else:
         return False
@@ -80,14 +78,19 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def create_user_goals(db: Session, goals: shemas.GoalsCreate):
-    goals = crud.create_user_goals(db, goals)
-    return goals
+# def create_user_goals(db: Session, goals: shemas.GoalsCreate):
+#     goals = crud.create_user_goals(db, goals)
+#     return goals
 
 
-def get_user_goals(db: Session, user_id: int):
-    goals = crud.get_user_goals(db, user_id)
-    return goals
+# def get_user_goals(db: Session, user_id: int):
+#     goals = crud.get_user_goals(db, user_id)
+#     return goals
+
+
+def get_user_workout_bad_version(db: Session, user_id: int, data_begin: date = None, data_end: date = None):
+    workout = crud.get_user_workout_bad_version(db, user_id, data_begin, data_end)
+    return workout
 
 
 def get_user_workout(db: Session, user_id: int, data_begin: date = None, data_end: date = None):
@@ -95,9 +98,12 @@ def get_user_workout(db: Session, user_id: int, data_begin: date = None, data_en
     return workout
 
 
-
 def create_user_workout(db: Session, workout: shemas.Workout):
-    workout = crud.create_user_workout(db, workout)
+    if not crud.find_athlete_by_key(db, workout.key):
+        crud.create_athlete(db, shemas.Athlete(**workout.dict()))
+    athlete_id = crud.find_athlete_by_key(db, workout.key).athlete_id
+    workout = crud.create_user_workout(db, shemas.CreateWorkout(**workout.dict(), athlete_id=athlete_id,
+                                                                count_of_pull_up_great=0, data=date.today()))
     return workout
 
 
