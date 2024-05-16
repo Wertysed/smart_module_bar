@@ -7,7 +7,7 @@ from db import Base
 class User(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     firstname = Column(String)
     lastname = Column(String)
@@ -18,11 +18,11 @@ class User(Base):
 class Athlete(Base):
     __tablename__ = "athletes"
 
-    athlete_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     firstname = Column(String)
     lastname = Column(String)
     patronymic = Column(String)
-    sex_id = Column(Integer, ForeignKey("sex.sex_id"))
+    sex_id = Column(Integer, ForeignKey("sex.id"))
     old = Column(Integer)
     key = Column(String)
 
@@ -32,7 +32,7 @@ class Athlete(Base):
 class Sex(Base):
     __tablename__ = "sex"
 
-    sex_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     athlete = relationship("Athlete", back_populates="sex")
 
@@ -40,7 +40,7 @@ class Sex(Base):
 class Workout(Base):
     __tablename__ = "workout"
 
-    workout_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     # title = Column(String, index=True)
     data = Column(Date, index=True)
     # description = Column(String, index=True)
@@ -49,8 +49,8 @@ class Workout(Base):
     # count_of_pull_up_bad = Column(Integer, index=True)
     # calories = Column(Integer, index=True)
 
-    athlete_id = Column(Integer, ForeignKey("athletes.athlete_id"))
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+    athlete_id = Column(Integer, ForeignKey("athletes.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
     athlete = relationship("Athlete", back_populates="workout")
     owner = relationship("User", back_populates="workout")
@@ -71,8 +71,8 @@ class Workout(Base):
 class SmartModule(Base):
     __tablename__ = 'smart_module'
 
-    smart_module_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     identification = Column(String, index=True)
     session_status = Column(Integer, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 

@@ -9,7 +9,7 @@ class UserBase(BaseModel):
 class UserOut(UserBase):
     firstname: str
     lastname: str
-    user_id: int
+    id: int
 class UserReg(UserBase):
     firstname: str
     lastname: str
@@ -46,6 +46,7 @@ class PublicPullUps(BaseModel):
     # count_of_pull_up_medium: int
     # count_of_pull_up_bad: int
 
+
 class Workout(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     firstname: str
@@ -79,7 +80,21 @@ class Athlete(BaseModel):
     firstname: str
     lastname: str
     patronymic: str
-    sex_id: int
+    sex: "Sex"
     old: int
     key: str
+class AthleteSh(BaseModel):
 
+    firstname: str
+    lastname: str
+    patronymic: str
+    sex_id: int 
+    old: int
+    key: str
+class Sex(BaseModel):
+    name: str 
+class WorkNew(BaseModel):
+    data: date
+    count_of_pull_up_great: int
+
+    athlete: "Athlete"

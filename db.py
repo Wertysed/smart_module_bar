@@ -1,7 +1,17 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER, SSH_HOST, SSH_PASS, SSH_USER
+from config import (
+    DB_HOST,
+    DB_NAME,
+    DB_PASS,
+    DB_PORT,
+    DB_USER,
+    SSH_HOST,
+    SSH_PASS,
+    SSH_USER,
+)
+
 # from sshtunnel import SSHTunnelForwarder
 # server = SSHTunnelForwarder(
 #     (SSH_HOST, 22),
@@ -17,3 +27,11 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

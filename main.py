@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Body, Depends, Query
-from typing import Annotated, Any
-from sqlalchemy.orm import Session
-import shemas, models, crud, services
+from fastapi import FastAPI, Body, Depends
+from typing import Annotated
+from dependencies import smart_module_service, user_service, workout_service
+import shemas, models
 from db import SessionLocal, engine
 from passlib.context import CryptContext
-from datetime import date
-
-
+from fastapi.middleware.cors import CORSMiddleware
+from services.smart_module_service import SmartModuleService
+from services.user_service import UserService
+from services.workout_service import WorkoutService
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -15,6 +16,15 @@ app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = SessionLocal()
@@ -25,73 +35,55 @@ def get_db():
 
 
 @app.post("/create_workout" )
-async def create_workout(workout: Annotated[shemas.Workout, Body()] = None, db: Session = Depends(get_db)):
-    workout = services.create_user_workout(db, workout)
-    return workout
-
-@app.get("/data_for_month/{owner_id}")
-async def get_data_for_month(owner_id: int, db: Session = Depends(get_db), month: Annotated[int, Query()] = None):
-    data = services.get_data_for_month(db, owner_id, month)
-    return data
-@app.get("/data_for_year/{owner_id}")
-async def get_data_for_year(owner_id: int, db: Session = Depends(get_db), year: Annotated[int, Query()] = None):
-    data = services.get_data_for_year(db, owner_id, year)
-    return data
-@app.get("/workouts/{owner_id}", response_model=list[shemas.WorkoutOut])
-async def get_user_workouts(owner_id: int, db: Session = Depends(get_db), data_begin: Annotated[date, Query()] = None,
-                            data_end: Annotated[date, Query()] = None):
-    workouts = services.get_user_workout_bad_version(db, owner_id, data_begin, data_end)
-    return workouts
+async def create_workout(workout: Annotated[shemas.Workout, Body()], workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    return workout_service.create(workout) 
 
 
+@app.get("/workouts/{owner_id}", response_model=list[shemas.WorkNew])
+async def get_user_workouts(owner_id: int, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    return workout_service.read_by_options({"user_id": owner_id})
 
-# @app.post("/create_goals", response_model=shemas.Goals)
-# async def create_goals(goals: Annotated[shemas.GoalsCreate, Body()] = None, db: Session = Depends(get_db)):
-#     goals = services.create_user_goals(db, goals)
-#     return goals
+@app.get("/workout/{id}", response_model=shemas.WorkNew)
+async def get_workout_by_id(id: int, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    return workout_service.read_by_id(id) 
 
-
-# @app.get("/goals/{owner_id}", response_model=list[shemas.Goals])
-# async def get_user_goals(owner_id: int, db: Session = Depends(get_db)):
-#     goals = services.get_user_goals(db, owner_id)
-#     return goals
+@app.get("/user/{id}", response_model=shemas.UserOut)
+async def get_user_by_id(id: int, user_service: Annotated[UserService, Depends(user_service)]):
+    return user_service.read_by_id(id) 
 
 
 @app.post("/login", response_model=shemas.UserOut)
-async def login(user: Annotated[shemas.UserIn, Body()] = None, db: Session = Depends(get_db)):
-    user = services.login(user, db)
-    return user
+async def login(user: Annotated[shemas.UserIn, Body()], user_service: Annotated[UserService, Depends(user_service)]):
+    return user_service.sign_in(user) 
 
 @app.get("/identification_module")
-async def identification_module(identification_key: str, db: Session = Depends(get_db)):
-    return services.get_smartmodule(db, identification_key)
+async def identification_module(identification_key: str, smart_module_service: Annotated[SmartModuleService, Depends(smart_module_service)]):
+    return smart_module_service.read_by_options({"identification": identification_key}) 
 
 
 
 @app.post("/registration", response_model=shemas.UserOut)
-async def registration(user: Annotated[shemas.UserReg, Body()] = None, db: Session = Depends(get_db)):
-    user = services.registration(user, db)
-    return user
+async def registration(user: Annotated[shemas.UserReg, Body()], user_service: Annotated[UserService, Depends(user_service)]):
+    return user_service.sign_up(user) 
 
 
 @app.post("/create_smart_module", response_model=shemas.SmartModule)
-async def create_smart_module(smart_module: Annotated[shemas.SmartModule, Body()] = None, db: Session = Depends(get_db)):
-    new_smart_module = services.create_smart_module(db, smart_module)
-    return new_smart_module
+async def create_smart_module(smart_module: Annotated[shemas.SmartModule, Body()], smart_module_service: Annotated[SmartModuleService, Depends(smart_module_service)]):
+    return smart_module_service.create(smart_module) 
 
 @app.post("/start_workout")
-async def start_workout(workout: Annotated[shemas.Workout, Body()] = None,  db: Session = Depends(get_db)):
-    services.create_user_workout(db, workout)
-    services.change_smartmodule_user_status(db, workout.identification_key, workout.user_id,  status=1)
+async def start_workout(workout: Annotated[shemas.Workout, Body()], workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    workout_service.start(workout)
     return {"message": "workout starts!"}
 
 @app.post("/end_workout")
-async def end_workout(user_id: int, identification_key: str, db: Session = Depends(get_db)):
-    new_status = services.change_smartmodule_user_status(db, identification_key, user_id, status=0)
+async def end_workout(user_id: int, identification_key: str, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    workout_service.end(user_id, identification_key)
     return {"message": "workout ends!"}
+
 @app.post("/public_pull_ups")
-async def public_pull_ups(data: Annotated[shemas.PublicPullUps, Body()] = None, db: Session = Depends(get_db)):
-    status = services.public_pull_ups(db, data)
+async def public_pull_ups(data: Annotated[shemas.PublicPullUps, Body()],   workout_service: Annotated[WorkoutService, Depends(workout_service)]):
+    status = workout_service.update_pulls(data)
     if status:
         return {"message": "pull ups counted"}
     else:
