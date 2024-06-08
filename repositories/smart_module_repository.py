@@ -1,5 +1,5 @@
 from repositories.repository import SqlAlchemyRepository
-from models import SmartModule 
+from models.smart_module import SmartModule 
 
 class SmartModuleRepository(SqlAlchemyRepository):
     def __init__(self, session):

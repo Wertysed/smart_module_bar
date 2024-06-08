@@ -1,8 +1,8 @@
-from models import Workout
 from repositories.repository import AbstractRepository
 from datetime import date
-from shemas import AthleteSh, CreateWorkout, SmartModule, PublicPullUps
-
+from shema.athlete_shema import AthleteSh
+from shema.workout_shema import CreateWorkout, PublicPullUps, Workout
+from shema.smart_module_shema import SmartModule
 class WorkoutService:
 
     def __init__(self, workout_repository: AbstractRepository, athlete_repository: AbstractRepository, smart_module_repository: AbstractRepository):

@@ -1,5 +1,5 @@
 from repositories.repository import AbstractRepository
-from shemas import UserIn, UserReg, UserCreate
+from shema.users_shema import UserIn, UserReg, UserCreate
 from utils import get_password_hash, verify_password
 
 class UserService:

@@ -1,5 +1,5 @@
 from repositories.repository import SqlAlchemyRepository
-from models import Sex 
+from models.sex import Sex 
 
 class SexRepository(SqlAlchemyRepository):
     def __init__(self, session):

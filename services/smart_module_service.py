@@ -1,5 +1,5 @@
 from repositories.repository import AbstractRepository
-from shemas import SmartModule
+from shema.smart_module_shema import SmartModule
 
 
 class SmartModuleService:

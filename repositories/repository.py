@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from fastapi import Depends
-from db import get_db
 from sqlalchemy.orm import selectinload
 
 class AbstractRepository(ABC):

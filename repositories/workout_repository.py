@@ -1,5 +1,5 @@
 from repositories.repository import SqlAlchemyRepository
-from models import Workout 
+from models.workout import Workout 
 
 class WorkoutRepository(SqlAlchemyRepository):
     def __init__(self, session):
