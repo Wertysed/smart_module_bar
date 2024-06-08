@@ -38,9 +38,11 @@ async def create_workout(workout: Annotated[Workout, Body()], workout_service: A
 async def get_user_workouts(owner_id: int, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
     return workout_service.read_by_options({"user_id": owner_id})
 
+
 @app.get("/workout/{id}", response_model=WorkNew)
 async def get_workout_by_id(id: int, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
     return workout_service.read_by_id(id) 
+
 
 @app.get("/user/{id}", response_model=UserOut)
 async def get_user_by_id(id: int, user_service: Annotated[UserService, Depends(user_service)]):
@@ -51,10 +53,10 @@ async def get_user_by_id(id: int, user_service: Annotated[UserService, Depends(u
 async def login(user: Annotated[UserIn, Body()], user_service: Annotated[UserService, Depends(user_service)]):
     return user_service.sign_in(user) 
 
+
 @app.get("/identification_module")
 async def identification_module(identification_key: str, smart_module_service: Annotated[SmartModuleService, Depends(smart_module_service)]):
     return smart_module_service.read_by_options({"identification": identification_key}) 
-
 
 
 @app.post("/registration", response_model=UserOut)
@@ -66,15 +68,18 @@ async def registration(user: Annotated[UserReg, Body()], user_service: Annotated
 async def create_smart_module(smart_module: Annotated[SmartModule, Body()], smart_module_service: Annotated[SmartModuleService, Depends(smart_module_service)]):
     return smart_module_service.create(smart_module) 
 
+
 @app.post("/start_workout")
 async def start_workout(workout: Annotated[Workout, Body()], workout_service: Annotated[WorkoutService, Depends(workout_service)]):
     workout_service.start(workout)
     return {"message": "workout starts!"}
 
+
 @app.post("/end_workout")
 async def end_workout(user_id: int, identification_key: str, workout_service: Annotated[WorkoutService, Depends(workout_service)]):
     workout_service.end(user_id, identification_key)
     return {"message": "workout ends!"}
+
 
 @app.post("/public_pull_ups")
 async def public_pull_ups(data: Annotated[PublicPullUps, Body()],   workout_service: Annotated[WorkoutService, Depends(workout_service)]):
@@ -84,3 +89,4 @@ async def public_pull_ups(data: Annotated[PublicPullUps, Body()],   workout_serv
     else:
         return {"message": "pull ups doesnt counted"
                            ""}
+ 
